@@ -1,135 +1,105 @@
-import React, { useState } from "react";
-import TrelloCard from "./TrelloCard";
-import TrelloCreate from "./TrelloCreate";
-import { Droppable, Draggable } from "react-beautiful-dnd";
-import styled from "styled-components";
-import { connect } from "react-redux";
-import { editTitle, deleteList } from "../actions";
-import Icon from "@material-ui/core/Icon";
+import {Constants} from '../actions';
 
-const ListContainer = styled.div`
-  background-color: #dfe3e6;
-  border-radius: 3px;
-  width: 300px;
-  padding: 8px;
-  height: 100%;
-  margin: 0 8px 0 0;
-`;
-
-const StyledInput = styled.input`
-  width: 100%;
-  border: none;
-  outline-color: blue;
-  border-radius: 3px;
-  margin-bottom: 3px;
-  padding: 5px;
-`;
-
-const TitleContainer = styled.div`
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: pointer;
-`;
-
-const DeleteButton = styled(Icon)`
-  cursor: pointer;
-  transition: opacity 0.3s ease-in-out;
-  opacity: 0.4;
-  &:hover {
-    opacity: 0.8;
+let listID = 2;
+let cardID = 5;
+const initialState = [
+  {
+    title: "Last Episode",
+    id: `list-${0}`,
+    cards: [
+            { id: `card-${0}`,
+              text: "Static Card"
+            },
+            { id: `card-${1}`,
+              text: "2nd Static Card"
+            }
+          ]
+  },
+  {
+    title: "New Episode",
+    id: `list-${1}`,
+    cards: [
+            { id: `card-${2}`,
+              text: "1st Static Card"
+            },
+            { id: `card-${3}`,
+              text: "2nd Static Card"
+            },
+            { id: `card-${4}`,
+              text: "3rd Static Card"
+            }
+          ]
   }
-`;
+];
 
-const ListTitle = styled.h4`
-  transition: background 0.3s ease-in;
-  ${TitleContainer}:hover & {
-    background: #ccc;
-  }
-`;
+const ListsReducer = (state = initialState, action) => {
+  switch (action.type) {
+    case Constants.AddLIST:
+      const newList = {
+        title: action.payload,
+        cards: [],
+        id: `list-${listID}`,
+      };
+      listID += 1;
+      return [...state, newList];
 
-const TrelloList = ({ title, cards, listID, index, dispatch }) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [listTitle, setListTitle] = useState(title);
+    case Constants.AddCARD:
+    {
+      const newCard = {
+        text: action.payload.text,
+        id: `card-${cardID}`
+      };
+      cardID += 1;
+    const newState = state.map(list => {
+        if(list.id===action.payload.listID){
+          return {
+            ...list,
+            cards: [...list.cards, newCard],
+          };
+        } else {
+          return list;
+        }
+      });
+      return newState;
+    }
 
-  const renderEditInput = () => {
-    return (
-      <form onSubmit={handleFinishEditing}>
-        <StyledInput
-          type="text"
-          value={listTitle}
-          onChange={handleChange}
-          autoFocus
-          onFocus={handleFocus}
-          onBlur={handleFinishEditing}
-        />
-      </form>
-    );
-  };
+      case Constants.DragHAPPENED:
+        const {
+          droppableIdStart,
+          droppableIdEnd,
+          droppableIndexStart,
+          droppableIndexEnd,
+          draggableId,
+          type
+        } = action.payload;
+        const newState = [...state];
+        //dragging lists around
+        if(type === "list") {
+          const list = newState.splice(droppableIndexStart, 1);
+          newState.splice(droppableIndexEnd, 0, ...list);
+          return newState;
+        }
+        //when drag and drop happens in the same list
+        if (droppableIdStart === droppableIdEnd) {
+           const list = state.find(list => droppableIdStart===list.id);
+           const card = list.cards.splice(droppableIndexStart, 1);
+             list.cards.splice(droppableIndexEnd, 0, ...card)
+         }
+         //when drag and drop happens across lists
+        if (droppableIdStart !== droppableIdEnd) {
+          //identify the list where drag happened
+          const listStart = state.find(list => droppableIdStart === list.id);
+          //pull out the card from the list
+          const card = listStart.cards.splice(droppableIndexStart, 1);
+          //find list where drag ended
+          const listEnd = state.find(list => droppableIdEnd === list.id);
+          //put card in new list
+          listEnd.cards.splice(droppableIndexEnd, 0, ...card)
+        }
 
-  const handleFocus = e => {
-    e.target.select();
-  };
+      return newState;
+        default:
+      return state;
+  }};
 
-  const handleChange = e => {
-    e.preventDefault();
-    setListTitle(e.target.value);
-  };
-
-  const handleFinishEditing = e => {
-    setIsEditing(false);
-    dispatch(editTitle(listID, listTitle));
-  };
-
-  const handleDeleteList = () => {
-    dispatch(deleteList(listID));
-  };
-
-  return (
-    <Draggable draggableId={String(listID)} index={index}>
-      {provided => (
-        <ListContainer
-          {...provided.draggableProps}
-          {...provided.dragHandleProps}
-          ref={provided.innerRef}
-        >
-          <Droppable droppableId={String(listID)} type="card">
-            {provided => (
-              <div>
-                <div>
-                  {isEditing ? (
-                    renderEditInput()
-                  ) : (
-                    <TitleContainer onClick={() => setIsEditing(true)}>
-                      <ListTitle>{listTitle}</ListTitle>
-                      <DeleteButton onClick={handleDeleteList}>
-                        delete
-                      </DeleteButton>
-                    </TitleContainer>
-                  )}
-                </div>
-                <div {...provided.droppableProps} ref={provided.innerRef}>
-                  {cards.map((card, index) => (
-                    <TrelloCard
-                      key={card.id}
-                      text={card.text}
-                      id={card.id}
-                      index={index}
-                      listID={listID}
-                    />
-                  ))}
-                  {provided.placeholder}
-                  <TrelloCreate listID={listID} />
-                </div>
-              </div>
-            )}
-          </Droppable>
-        </ListContainer>
-      )}
-    </Draggable>
-  );
-};
-
-export default connect()(TrelloList);
+export default ListsReducer;

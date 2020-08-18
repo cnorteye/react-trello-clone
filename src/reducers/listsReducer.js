@@ -1,4 +1,4 @@
-import { CONSTANTS } from "../actions";
+import { Constants } from "../actions";
 
 const initialState = {
   "list-0": {
@@ -11,7 +11,7 @@ const initialState = {
 
 const listsReducer = (state = initialState, action) => {
   switch (action.type) {
-    case CONSTANTS.ADD_LIST: {
+    case Constants.ADD_LIST: {
       const { title, id } = action.payload;
       const newList = {
         title: title,
@@ -24,14 +24,14 @@ const listsReducer = (state = initialState, action) => {
       return newState;
     }
 
-    case CONSTANTS.ADD_CARD: {
+    case Constants.ADD_CARD: {
       const { listID, id } = action.payload;
       const list = state[listID];
       list.cards.push(`card-${id}`);
       return { ...state, [listID]: list };
     }
 
-    case CONSTANTS.DRAG_HAPPENED:
+    case Constants.DRAG_HAPPENED:
       const {
         droppableIdStart,
         droppableIdEnd,
@@ -73,7 +73,7 @@ const listsReducer = (state = initialState, action) => {
       }
       return state;
 
-    case CONSTANTS.DELETE_CARD: {
+    case Constants.DELETE_CARD: {
       const { listID, id } = action.payload;
 
       const list = state[listID];
@@ -82,7 +82,7 @@ const listsReducer = (state = initialState, action) => {
       return { ...state, [listID]: { ...list, cards: newCards } };
     }
 
-    case CONSTANTS.EDIT_LIST_TITLE: {
+    case Constants.EDIT_LIST_TITLE: {
       const { listID, newTitle } = action.payload;
 
       const list = state[listID];
@@ -90,7 +90,7 @@ const listsReducer = (state = initialState, action) => {
       return { ...state, [listID]: list };
     }
 
-    case CONSTANTS.DELETE_LIST: {
+    case Constants.DELETE_LIST: {
       const { listID } = action.payload;
       const newState = state;
       delete newState[listID];

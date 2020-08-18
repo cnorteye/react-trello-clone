@@ -1,16 +1,11 @@
-import { CONSTANTS } from "../actions";
-import { v4 as uuidv4 } from 'uuid';
+import {Constants} from '../actions';
 
-export const addList = title => {
-  return (dispatch, getState) => {
-    const boardID = getState().activeBoard;
-    const id = uuidv4();
-    dispatch({
-      type: CONSTANTS.ADD_LIST,
-      payload: { title, boardID, id }
-    });
+export const addList = (title) => {
+  return {
+    type: Constants.AddLIST,
+    payload: title
   };
-};
+}
 
 export const sort = (
   droppableIdStart,
@@ -20,42 +15,15 @@ export const sort = (
   draggableId,
   type
 ) => {
-  return (dispatch, getState) => {
-    const boardID = getState().activeBoard;
-    dispatch({
-      type: CONSTANTS.DRAG_HAPPENED,
-      payload: {
-        droppableIdStart,
-        droppableIdEnd,
-        droppableIndexEnd,
-        droppableIndexStart,
-        draggableId,
-        type,
-        boardID
-      }
-    });
-  };
-};
-
-export const editTitle = (listID, newTitle) => {
   return {
-    type: CONSTANTS.EDIT_LIST_TITLE,
+    type: Constants.DragHAPPENED,
     payload: {
-      listID,
-      newTitle
+      droppableIdStart,
+      droppableIdEnd,
+      droppableIndexStart,
+      droppableIndexEnd,
+      draggableId,
+      type
     }
-  };
-};
-
-export const deleteList = listID => {
-  return (dispatch, getState) => {
-    const boardID = getState().activeBoard;
-    return dispatch({
-      type: CONSTANTS.DELETE_LIST,
-      payload: {
-        listID,
-        boardID
-      }
-    });
-  };
-};
+  }
+}
